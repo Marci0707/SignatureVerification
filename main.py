@@ -1,16 +1,29 @@
-# This is a sample Python script.
-
-# Press Shift+F10 to execute it or replace it with your code.
-# Press Double Shift to search everywhere for classes, files, tool windows, actions, and settings.
+import os
 
 
-def print_hi(name):
-    # Use a breakpoint in the code line below to debug your script.
-    print(f'Hi, {name}')  # Press Ctrl+F8 to toggle the breakpoint.
+def fetch_user_data(user_id):
+    all_signatures = []
+    for signature_id in range(1, 41):
+        signature = []
+        filename = "U" + str(user_id) + "S" + str(signature_id) + ".txt"
+        path = os.path.join(os.getcwd(), "SVC2004_Online", filename)
+        with open(path) as file:
+            lines = file.readlines()[1:]  # discard the first row
+            for line in lines:
+                line = line.strip().split()
+                data_point = tuple([int(x) for x in line])
+                signature.append(data_point)
+
+            all_signatures.append(signature)
+
+    return all_signatures
 
 
-# Press the green button in the gutter to run the script.
+def main():
+    user_id = input("What is the user id?")
+    user_signatures = fetch_user_data(user_id)
+    print(len(user_signatures))
+
+
 if __name__ == '__main__':
-    print_hi('PyCharm')
-
-# See PyCharm help at https://www.jetbrains.com/help/pycharm/
+    main()
