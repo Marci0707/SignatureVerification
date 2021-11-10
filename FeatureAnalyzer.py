@@ -23,8 +23,8 @@ class SignatureFeatureAnalyzer:
         self.df["y_d_d_d"] = (self.df["y_d_d"] - self.df["y_d_d"].shift(1)) / (self.df["t"] - self.df["t"].shift(1))
         self.df["x_d_d_d"] = (self.df["x_d_d"] - self.df["x_d_d"].shift(1)) / (self.df["t"] - self.df["t"].shift(1))
 
-    def calc_duration(self):  # TODO check
-        return len(self.df)
+    def calc_duration(self):
+        return self.df["t"].iloc[-1] - self.df["t"].iloc[0]
 
     def calc_avg_jerk(self):
         self.df["abs_jerk"] = np.sqrt(self.df["x_d_d"] * self.df["x_d_d"] + self.df["y_d_d"] * self.df["y_d_d"])
@@ -38,7 +38,7 @@ class SignatureFeatureAnalyzer:
     def count_local_maxima_in_col(self, col_name):
         c = 0
         col = self.df[col_name]
-        for i in range(1,len(col) - 1):
+        for i in range(1, len(col) - 1):
             if col[i + 1] < col[i] > col[i - 1]:
                 c += 1
         if col[0] > col[1]:
@@ -46,6 +46,22 @@ class SignatureFeatureAnalyzer:
         if col[-1] > col[-2]:
             c += 2
         return c
+
+    def f11(self):  # Jerk rms
+        return (self.df["abs_jerk"] ** 2).mean() ** 0.5
+
+    def f12(self):  #t(2nd pen_down) / duration
+        pen_downs_found = 0
+        for row_idx in range(len(self.df)):
+            if self.df["state"].iloc[row_idx] == 0:
+                pen_downs_found += 1
+            if pen_downs_found == 2:
+                return self.df["t"].iloc[row_idx] / self.calc_duration()
+
+        return 1  # just in case
+
+    def f13(self): #(avg abs(velocity)) / (maximum of Vx)
+        return ((self.df["x_d"] ** 2 + self.df["y_d"] ** 2) ** 0.5).mean() / self.df["x_d"].max()
 
     def analyze(self):
         values = np.zeros(100)
@@ -59,6 +75,16 @@ class SignatureFeatureAnalyzer:
         values[7] = self.count_local_maxima_in_col("x")
         values[8] = self.calc_std_dev_in_col("x_d_d")
         values[9] = self.calc_std_dev_in_col("x_d")
+        values[10] = self.f11()
+        values[11] = self.count_local_maxima_in_col("y")
+        values[12] = self.f12()
+        values[13] = self.f13()
+        #values[14] = TODO
+        #values[15] = TODO
+        #values[17] = TODO
+        #values[18] = TODO
+        #values[19] = TODO
+        #values[20] = TODO
 
     def calc_sign_changes_in_col(self, col_name):
         col = self.df[col_name]
