@@ -1,1 +1,7 @@
 /SVC2004_Online/
+/featureVectors.xlsx
+.idea
+*.txt
+Drónadatok.ipynb
+testEnv.ipynb
+.ipynb_checkpoints
